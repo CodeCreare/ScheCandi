@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>SeleSche Sample</title>
+</head>
+
+<script src='https://code.jquery.com/jquery-3.7.1.min.js' integrity='sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=' crossorigin='anonymous'></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.5.0/main.min.js'></script>
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/fullcalendar@5.5.0/main.min.css'>
+<script src='https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js'></script>
+<script src='https://unpkg.com/vue-select@latest'></script> 
+<script src='../Common/ScheCandis.js'></script> 
+<link rel='stylesheet' href='../Common/ScheCandis.css?20240518'>
+<script src='DebugContents.txt'></script> 
+<!--
+-->
+
+
+<style>
+.btn-gray {
+	height			: 50px;
+	color			: #090909;
+	padding			: 0.5em 1.0em;
+	font-size		: 18px;
+	border-radius	: 0.5em;
+	background		: #e8e8e8;
+	border			: 1px solid #e8e8e8;
+	transition		: all .3s;
+	box-shadow		: 6px 6px 12px #c5c5c5, -6px -6px 12px #ffffff;
+	cursor			: pointer;
+}
+.btn-gray:active {
+	color			: #666;
+	box-shadow		: inset 4px 4px 12px #c5c5c5, inset -4px -4px 12px #ffffff;
+}
+</style>
+
+
+<body>
+		<table>
+			<tr>
+				<td>
+					<div id='app_vue'>
+						<table>
+							<tr>
+								<td><button class="btn-gray" v-on:click="Debug_ResizeHeight(-50)">↑</button></td>
+								<td><button class="btn-gray" v-on:click="Debug_ResizeHeight(50)">↓</button></td>
+								<td><button class="btn-gray" v-on:click="Debug_ResizeWidth(-50)">←</button></td>
+								<td><button class="btn-gray" v-on:click="Debug_ResizeWidth(50)">→</button></td>
+								<td><button class="btn-gray" v-on:click="Debug_ChangeOptions">Debug_ChangeOptions</button></td>
+								<td><button class="btn-gray" v-on:click="Debug_GetData">Debug_GetData</button></td>
+								<td>{{count}}</td>
+							</tr>
+						</table>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td><div id="area_schecandis"></div></td>
+			</tr>
+		</table>
+</body>
+
+
+<script>
+var vue_app_main = new Vue({
+	el: '#app_vue',
+	data: {
+		selecandis		: null, 
+		makecandis		: null, 
+		height			: 600, 
+		width			: 1200, 
+		count			: 0,
+		candis			: [],
+		exists			: [],
+	},
+
+	created: function() {
+//		this.selecandis = new SeleCandis('#area_schecandis', this.CB_SelectChanged)
+		this.makecandis = new MakeCandis('#area_schecandis', this.CB_SelectChanged)
+		var	app	= this;
+		$(window).resize(function () {
+			app.SetSize();
+		});
+
+		setTimeout(() => {
+			app.Debug_Auto(1);
+			app.SetSize();
+		}, (1000 * 1));
+		setTimeout(() => {
+			app.Debug_Auto(2);
+		}, (1000 * 2));
+		setTimeout(() => {
+			app.Debug_Auto(3);
+		}, (1000 * 5));
+
+		this.exists	= GetNowSches();
+		this.exists	= FilterNowSches(this.exists);
+	},
+	methods:{
+		SetSize() {
+			var height_frame	= $(window).height();
+			const margin_h		= 120;
+			var width_frame		= $(window).width();
+			const margin_w		= 30;
+			this.height			= height_frame - margin_h;
+			this.width			= width_frame - margin_w;
+			if (this.selecandis != null) {
+				this.selecandis.SetOptions({'height':this.height, 'width':this.width });
+			}
+			if (this.makecandis != null) {
+				this.makecandis.SetOptions({'height':this.height, 'width':this.width });
+			}
+		},
+
+		CB_SelectChanged(selectdata) {
+			console.log('html selectdata=', selectdata);
+		},
+
+		SetOptions(options) {
+			if (this.selecandis != null) {
+				this.selecandis.SetOptions(options);
+			}
+			if (this.makecandis != null) {
+				this.makecandis.SetOptions(options);
+			}
+		},
+
+		Debug_Auto(pattern) {
+			if (pattern == 1) {
+				this.candis	= Debug_MakeCandis();
+				if (this.selecandis != null) {
+					this.selecandis.SetSchedules(this.candis, this.exists, '＊＊＊＊予定', 75);
+				}
+				if (this.makecandis != null) {
+					this.makecandis.SetSchedules(this.candis, this.exists, '＊＊＊＊予定', 60);
+				}
+			}
+			if (pattern == 3) {
+			}
+		},
+		Debug_ResizeHeight(value) {
+			this.height		+= value;
+			this.SetOptions({'height' : this.height});
+		},
+		Debug_ResizeWidth(value) {
+			this.width		+= value;
+			this.SetOptions({'width' : this.width});
+		},
+		Debug_ChangeOptions() {
+			this.SetOptions({'exist_event_color' : 'royalblue', 'wording_title_1touch':'one touch', 'title_color':'pink',
+			'wording_title_detail_area':'candi{{candi_no}} [{{date}} {{time_start}}～{{time_end}}] info'});
+		},
+		Debug_GetData() {
+			if (this.makecandis != null) {
+				var title	= this.makecandis.title;
+				console.log('title=', title);
+			}
+		},
+	},
+});
+
+
+
+function Debug_MakeCandis() {
+	var candis	= [
+		{'dt_start':new Date(2024, 5-1, 27, 10, 0), 'dt_end':new Date(2024, 5-1, 27, 15, 0)},
+		{'dt_start':new Date(2024, 5-1, 28, 11, 0), 'dt_end':new Date(2024, 5-1, 28, 14, 0)},
+		{'dt_start':new Date(2024, 5-1, 29, 13, 0), 'dt_end':new Date(2024, 5-1, 29, 18, 0)},
+		{'dt_start':new Date(2024, 5-1, 30, 10, 0), 'dt_end':new Date(2024, 5-1, 30, 12, 0)},
+		{'dt_start':new Date(2024, 5-1, 31, 9, 0), 'dt_end':new Date(2024, 5-1, 31, 12, 0)},
+	];
+	var ok1	= {'dt_start':new Date(2024, 5-1, 27, 12, 0), 'dt_end':new Date(2024, 5-1, 27, 14, 0)}
+	var ok2	= {'dt_start':new Date(2024, 5-1, 27, 10, 0), 'dt_end':new Date(2024, 5-1, 27, 11, 15)}
+	candis[0].status	= 'CANDI_STS_PARTIAL';
+	candis[0].oks		= [ok1, ok2];
+	candis[0].comment	= '';
+	return candis;
+}
+
+
+
+function FilterNowSches(sches) {
+	console.log('sches.length=', sches.length);
+	var sches_new	= [];
+	var count		= 0;
+	for (var sche of sches) {
+		sches_new.push(sche);
+		count	+= 1;
+		if (50 < count) {
+			break;
+		}
+	}
+	return sches_new;
+}
+
+
+
+
+</script>
+
+</html>
+

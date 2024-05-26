@@ -1,0 +1,174 @@
+a.btn_kirari_blue {
+	border			: 1px solid #27acd9;
+	color			: #27acd9;
+}
+
+a.btn_kirari_blue:hover {
+	background		: #27acd9;
+}
+
+a.btn_kirari_red {
+	border			: 1px solid lightcoral;
+	color			: lightcoral;
+}
+
+a.btn_kirari_red:hover {
+	background		: lightcoral;
+}
+
+a.btn_kirari {
+	display		: block;
+	text-align	: center;
+	/*
+	vertical-align: middle;
+	*/
+	text-decoration	: none;
+	width			: 40px;
+	margin			: auto;
+	padding			: 10px 10px;
+	position		: relative;
+	border-radius	: 8px;
+	font-weight		: bold;
+	letter-spacing	: 1px;
+	background		: transparent;
+	overflow		: hidden;
+	-webkit-transition: all 0.2s ease-in;
+	-moz-transition	: all 0.2s ease-in;
+	transition		: all 0.2s ease-in;
+}
+a.btn_kirari:hover {
+	color			: #fff;
+	-webkit-transition: all 0.2s ease-out;
+	-moz-transition	: all 0.2s ease-out;
+	transition		: all 0.2s ease-out;
+}
+a.btn_kirari:hover::before {
+	-webkit-animation	: sh02 0.5s 0s linear;
+	-moz-animation		: sh02 0.5s 0s linear;
+	animation			: light 0.5s 0s linear;
+}
+a.btn_kirari::before {
+	content		: '';
+	display		: block;
+	width		: 0px;
+	height		: 86%;
+	position	: absolute;
+	top			: 7%;
+	left		: 0%;
+	opacity		: 0;
+	background	: white;
+	box-shadow	: 0 0 40px 20px white;
+	-webkit-transform: skewX(-20deg);
+	-moz-transform	: skewX(-20deg);
+	-ms-transform	: skewX(-20deg);
+	-o-transform	: skewX(-20deg);
+	transform		: skewX(-20deg);
+}
+@keyframes light {
+	from {opacity: 0; left: 0%;}
+	50% {opacity: 1;}
+	to {opacity: 0;left: 100%;}
+}
+
+
+
+#id_cal_title {
+	font-size	: 24px;
+	border		: none;
+}
+
+.cls_td_calendar{
+	border	: none;
+}
+
+.cls_calendar_area { 
+	overflow	: auto;	
+	height		: 100%;
+}
+
+.cls_calendar_body {
+	height		: 100%;
+}
+
+
+/* Calendar */
+/*
+.fc-timegrid-slot {
+	height: 10px !important
+}
+*/
+
+.fc-day-today {
+	background-color: white !important;
+}
+
+
+
+.candiboxes_area { 
+	overflow	: auto;	
+	height		: 100%;
+}
+
+.candiboxes_body {
+	height		: 100%;
+}
+
+.cls_candis_tbl {
+	/*
+    background: #f2f2f2;
+	*/
+    border-spacing: 0;
+}
+
+.cls_candis_tbl th, .cls_candis_tbl td{
+	border-bottom	: 1px dotted black;
+	padding			: 6px;
+}
+
+.cls_candis_tbl th {
+	background-color: lightcyan;
+}
+
+.cls_editing td {
+	border-top		: 3px solid blue;
+	border-bottom	: 3px solid blue;
+}
+.cls_td_mostleft  {
+	border-left		: 3px solid blue;
+}
+.cls_td_mostright  {
+	border-right	: 3px solid blue;
+}
+
+.cls_btn_edit {
+	width		: 30px;
+	height		: 30px;
+}
+
+.cls_marubatu {
+	width		: 30px;
+	height		: 30px;
+}
+
+.cls_timeinput {
+	text-align	: right;
+	width		: 22px;
+	font-size	: 18px;
+	border		: none;
+}
+.cls_timeinput:focus {
+	background-color: aliceblue;
+}
+
+.cls_needtime {
+	text-align	: right;
+	width		: 70px;
+	font-size	: 18px;
+}
+
+.cls_datedisp {
+	text-align	: right;
+	width		: 70px;
+	font-size	: 18px;
+	border		: none;
+}
