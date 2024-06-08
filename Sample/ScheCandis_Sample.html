@@ -10,11 +10,16 @@
 <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/fullcalendar@5.5.0/main.min.css'>
 <script src='https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js'></script>
 <script src='https://unpkg.com/vue-select@latest'></script> 
-<script src='../Common/ScheCandis.js'></script> 
-<link rel='stylesheet' href='../Common/ScheCandis.css?20240518'>
-<script src='DebugContents.txt'></script> 
 <!--
+<script src='../Lib/ScheCandis.js'></script> 
+<link rel='stylesheet' href='../Lib/ScheCandis.css?20240605'>
 -->
+<script src='https://cdn.jsdelivr.net/gh/CodeCreare/ScheCandis@v0.9.0/Common/ScheCandis.js'></script> 
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/CodeCreare/ScheCandis@v0.9.0/Common/ScheCandis.css?20240527'>
+
+<script src='ScheduleData.txt'></script> 
+<script src='../Fe2Php2Python/SendToBe.js'></script> 
+<script src='../Fe2Php2Python/UserProfile.js'></script> 
 
 
 <style>
@@ -49,7 +54,7 @@
 								<td><button class="btn-gray" v-on:click="Debug_ResizeWidth(-50)">←</button></td>
 								<td><button class="btn-gray" v-on:click="Debug_ResizeWidth(50)">→</button></td>
 								<td><button class="btn-gray" v-on:click="Debug_ChangeOptions">Debug_ChangeOptions</button></td>
-								<td><button class="btn-gray" v-on:click="Debug_GetData">Debug_GetData</button></td>
+								<td><button class="btn-gray" v-on:click="Debug_GetNow">Debug_GetNow</button></td>
 								<td>{{count}}</td>
 							</tr>
 						</table>
@@ -95,8 +100,8 @@ var vue_app_main = new Vue({
 			app.Debug_Auto(3);
 		}, (1000 * 5));
 
-		this.exists	= GetNowSches();
-		this.exists	= FilterNowSches(this.exists);
+		this.exists	= GetExistSches();
+		this.exists	= FilterExistSches(this.exists);
 	},
 	methods:{
 		SetSize() {
@@ -136,6 +141,7 @@ var vue_app_main = new Vue({
 				if (this.makecandis != null) {
 					this.makecandis.SetSchedules(this.candis, this.exists, '＊＊＊＊予定', 60);
 				}
+				this.Debug_GetNow();
 			}
 			if (pattern == 3) {
 			}
@@ -152,11 +158,15 @@ var vue_app_main = new Vue({
 			this.SetOptions({'exist_event_color' : 'royalblue', 'wording_title_1touch':'one touch', 'title_color':'pink',
 			'wording_title_detail_area':'candi{{candi_no}} [{{date}} {{time_start}}～{{time_end}}] info'});
 		},
-		Debug_GetData() {
-			if (this.makecandis != null) {
-				var title	= this.makecandis.title;
-				console.log('title=', title);
-			}
+		Debug_GetNow() {
+			var targets		= [{'type':'user', 'name':'toshiki'}];
+			var dtd_target	= new Date();
+			SendToBe('NowIf.py', 'GetSchedules', [targets, dtd_target, null, 1], 
+				function CB_Resp(resp_s2c) {
+					var result		= resp_s2c.func_ret;
+					console.log(result);
+				}
+			)
 		},
 	},
 });
@@ -176,12 +186,13 @@ function Debug_MakeCandis() {
 	candis[0].status	= 'CANDI_STS_PARTIAL';
 	candis[0].oks		= [ok1, ok2];
 	candis[0].comment	= '';
+	//candis	= [];
 	return candis;
 }
 
 
 
-function FilterNowSches(sches) {
+function FilterExistSches(sches) {
 	console.log('sches.length=', sches.length);
 	var sches_new	= [];
 	var count		= 0;

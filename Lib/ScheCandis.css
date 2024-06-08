@@ -23,9 +23,9 @@ a.btn_kirari {
 	vertical-align: middle;
 	*/
 	text-decoration	: none;
-	width			: 40px;
+	width			: 36px;
 	margin			: auto;
-	padding			: 10px 10px;
+	padding			: 8px 8px;
 	position		: relative;
 	border-radius	: 8px;
 	font-weight		: bold;
@@ -68,6 +68,54 @@ a.btn_kirari::before {
 	from {opacity: 0; left: 0%;}
 	50% {opacity: 1;}
 	to {opacity: 0;left: 100%;}
+}
+a.btn_kirari_small {
+	display		: block;
+	text-align	: center;
+	/*
+	vertical-align: middle;
+	*/
+	text-decoration	: none;
+	width			: 35px;
+	margin			: auto;
+	padding			: 5px 5px;
+	position		: relative;
+	border-radius	: 6px;
+	font-weight		: bold;
+	letter-spacing	: 1px;
+	background		: transparent;
+	overflow		: hidden;
+	-webkit-transition: all 0.2s ease-in;
+	-moz-transition	: all 0.2s ease-in;
+	transition		: all 0.2s ease-in;
+}
+a.btn_kirari_small:hover {
+	color			: #fff;
+	-webkit-transition: all 0.2s ease-out;
+	-moz-transition	: all 0.2s ease-out;
+	transition		: all 0.2s ease-out;
+}
+a.btn_kirari_small:hover::before {
+	-webkit-animation	: sh02 0.5s 0s linear;
+	-moz-animation		: sh02 0.5s 0s linear;
+	animation			: light 0.5s 0s linear;
+}
+a.btn_kirari_small::before {
+	content		: '';
+	display		: block;
+	width		: 0px;
+	height		: 86%;
+	position	: absolute;
+	top			: 7%;
+	left		: 0%;
+	opacity		: 0;
+	background	: white;
+	box-shadow	: 0 0 30px 10px white;
+	-webkit-transform: skewX(-20deg);
+	-moz-transform	: skewX(-20deg);
+	-ms-transform	: skewX(-20deg);
+	-o-transform	: skewX(-20deg);
+	transform		: skewX(-20deg);
 }
 
 
@@ -171,4 +219,17 @@ a.btn_kirari::before {
 	width		: 70px;
 	font-size	: 18px;
 	border		: none;
+}
+
+#id_keydown_receiver {
+	margin		: 28px;
+	position	: absolute;
+	z-index		: -10;
+	height		: 0;
+	width		: 15px;
+}
+
+.cls_td_add_cancel {
+	margin		: 2px;
+	padding		: 2px;
 }
