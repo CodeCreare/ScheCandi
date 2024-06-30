@@ -20,6 +20,8 @@ class CandisCommon {
 		['WORDING',		'title_needtime',		'必要時間'],
 		['WORDING',		'candititle',			'候補{{candi_no}}'],
 		['WORDING',		'needtime_shortage',	'必要時間({{needtime}}分)未満です'],
+		['WORDING',		'nt_shortage_title',	'候補{{candi_no}}が必要時間({{needtime}}分)未満です'],
+
 	];
 
 	static CALID_EXISTS		= 'id_div_exists';
@@ -190,15 +192,23 @@ class CandisCommon {
 
 
 
-
+/**
+ * MakeCandis class
+ * 
+ */
 class MakeCandis extends CandisCommon {
 	static option_params	= [
 		['WORDING',		'title_newcandi',		'新候補日時'],
 		['WORDING',		'title_explanation',	'ショートカット'],
-		['WORDING',		'ope_all',				'※ Shift+⇅:エリア移動、⇅:時間操作、↔:時間欄移動、(候補日時) Ctrl+d:削除、Ctrl+a:新時間枠追加、(新候補日時)Ctrl+s:保存、 Ctrl+c:キャンセル、Esc:キャンセル'],
+		['WORDING',		'ope_all',				'※ Shift+⇅:エリア移動、⇅:時間操作、↔:時間欄移動、(候補日時) Ctrl+e:編集、Ctrl+d:削除、Ctrl+c:新時間枠作成、(新候補日時)Ctrl+a:追加、 Esc:キャンセル'],
 		['WORDING',		'warning_conflict',		'候補{{candi_no1}}と候補{{candi_no2}}の時間が重なってます'],
 	];
 
+	/**
+	 * constructor, for 
+	 * @param {string} div_drawarea 
+	 * @param {function} cb_change 
+	 */
 	constructor(div_drawarea, cb_change) {
 		super();
 		this.div_drawarea		= div_drawarea;
@@ -208,6 +218,8 @@ class MakeCandis extends CandisCommon {
 		this.candis				= [];
 		this.candis_warning		= '';
 		this.InitOptions();
+		this.title				= '';
+		this.min_needtime		= this.options.min_needtime;
 		this.InitDraw();
 	}
 
@@ -215,7 +227,7 @@ class MakeCandis extends CandisCommon {
 		this.candis			= candis;
 		this.exists			= exists;
 		this.title			= title;
-		this.min_needtime	= (min_needtime==null) ? SeleCandis.DEF_MIN_NEEDTIME : min_needtime;
+		this.min_needtime	= (min_needtime==null) ? this.options.min_needtime : min_needtime;
 		this.SortCandis();
 		var info	= this.Get1stCandiInfo();
 		if (info.candi != null) {
@@ -307,10 +319,16 @@ class MakeCandis extends CandisCommon {
 		this.DrawSetHeight();
 		this.DrawCandis();
 		this.DrawExistCalendar();
+		this.cal_exists.render();
 	}
 
 	OP_Window_Focus() {
 		this.FocusArea();	
+	}
+
+	// .id_textarea_title 
+	OP_ClickTitle(e) {
+		this.ChangeFocusArea('FOCUSAREA_TITLE');
 	}
 
 	// #id_textarea_title
@@ -319,6 +337,7 @@ class MakeCandis extends CandisCommon {
 		if (['SHIFT', 'CONTROL', 'ALT'].indexOf(key_upper) != -1) {
 			return;
 		}
+		this.ChangeFocusArea('FOCUSAREA_TITLE', true);
 		if (!e.altKey && e.shiftKey && !e.ctrlKey) {
 			console.log('key_upper(Shift)=', key_upper);
 			if (['ARROWUP', 'ARROWDOWN'].indexOf(key_upper) != -1) {
@@ -333,18 +352,18 @@ class MakeCandis extends CandisCommon {
 		if (this.timer_id != null) {
 			clearTimeout(this.timer_id);
 		}
+		var str_title	= $('#id_textarea_title').val();
+		this.title		= str_title;
 		var app	= this;
 		this.timer_id	= setTimeout(
 			function CB() {
 				app.CB_Timeout_Keyup(); 
 			}
-			, 2000
+			, 500
 		);
 	}
 	CB_Timeout_Keyup() {
 		this.timer_id	= null;
-		var str_title	= $('#id_textarea_title').val();
-		this.title		= str_title;
 		this.cb_change(this.candis, this.title, this.min_needtime);
 	}
 
@@ -394,6 +413,7 @@ class MakeCandis extends CandisCommon {
 		if (['SHIFT', 'CONTROL', 'ALT'].indexOf(key_upper) != -1) {
 			return;
 		}
+		this.ChangeFocusArea('FOCUSAREA_NEEDTIME', true);
 		if (!e.altKey && e.shiftKey && !e.ctrlKey) {
 			console.log('key_upper(Shift)=', key_upper);
 			if (['ARROWUP', 'ARROWDOWN'].indexOf(key_upper) != -1) {
@@ -403,16 +423,19 @@ class MakeCandis extends CandisCommon {
 		}
 		if (!e.altKey && !e.shiftKey && e.ctrlKey) {
 			console.log('key_upper(Ctrl)=', key_upper);
-			if (key_upper == 'A') {
+			if (key_upper == 'C') {
 				e.preventDefault();
-				this.Keydown_CandiList_New();
+				this.Keydown_CandiList_CreateNew();
 			}
 		}
 		if (!e.altKey && !e.shiftKey && !e.ctrlKey) {
 			console.log('key_upper(Only)=', key_upper);
-			var value	= EleValueChange_ByUpDown('#' + id_this, 0, 120, 5, false, key_upper);
-			this.min_needtime	= value;
-			this.CandisUpdated();
+			if (['ARROWUP', 'ARROWDOWN'].indexOf(key_upper) != -1) {
+				e.preventDefault();
+				var value	= EleValueChange_ByUpDown('#' + id_this, 0, 120, 5, false, key_upper);
+				this.min_needtime	= value;
+				this.CandisUpdated();
+			}
 		}
 	}
 
@@ -444,18 +467,21 @@ class MakeCandis extends CandisCommon {
 		}
 		if (!e.altKey && !e.shiftKey && e.ctrlKey) {
 			console.log('key_upper(Ctrl)=', key_upper);
-			if (['ARROWUP', 'ARROWDOWN', 'ARROWLEFT', 'ARROWRIGHT', 'D', 'C', 'A'].indexOf(key_upper) != -1) {
+			if (['D', 'C', 'E'].indexOf(key_upper) != -1) {
 				e.preventDefault();
 			}
 			if (key_upper == 'D') {
 				this.Keydown_CandiList_Del();
-			} else if (key_upper == 'C' || key_upper == 'A') {
-				this.Keydown_CandiList_New();
+			} else if (key_upper == 'C') {
+				this.Keydown_CandiList_CreateNew();
+			} else if (key_upper == 'E') {
+				this.Keydown_CandiList_Edit();
 			}
 		}
 		if (!e.altKey && !e.shiftKey && !e.ctrlKey) {
 			console.log('key_upper=', key_upper);
 			if (['ARROWUP', 'ARROWDOWN'].indexOf(key_upper) != -1) {
+				e.preventDefault();
 				this.Keydown_CandiList_UD(key_upper);
 			}
 		}
@@ -480,11 +506,18 @@ class MakeCandis extends CandisCommon {
 
 	Keydown_CandiList_Del() {
 		var editing		= this.GetEditingCandi;
-		var no			= editing.no;
+		var no			= editing.candi.no;
 		this.DelCandi(no);
 	}
 
-	Keydown_CandiList_New() {
+	Keydown_CandiList_Edit() {
+		var editing		= this.GetEditingCandi;
+		var no			= editing.candi.no;
+		this.DelCandi(no);
+		this.AddNewWaku(editing.candi.dt_start, editing.candi.dt_end);
+	}
+
+	Keydown_CandiList_CreateNew() {
 		this.OP_AddNewWaku();
 	}
 
@@ -516,6 +549,8 @@ class MakeCandis extends CandisCommon {
 				dt_start.setDate(dt_start.getDate() + 2);
 			}
 			dt_start.setHours(this.options.starthour);
+			dt_start.setMinutes(0);
+			dt_start.setSeconds(0);
 		} else {
 			var candi		= editing.candi;
 			var dt_start	= candi.dt_end;
@@ -556,10 +591,10 @@ class MakeCandis extends CandisCommon {
 		}
 		if (!e.altKey && !e.shiftKey && e.ctrlKey) {
 			console.log('key_upper(Control)=', key_upper);
-			if (key_upper == 'S') {
+			if (key_upper == 'A') {
 				e.preventDefault();
 				this.KeyDownDateTimeInput_SaveNew();
-			} else if (key_upper == 'C') {
+			} else if (key_upper == 'ESCAPE') {
 				e.preventDefault();
 				this.KeyDownDateTimeInput_Cancel();
 			}
@@ -623,6 +658,10 @@ class MakeCandis extends CandisCommon {
 
 	KeyDownDateTimeInput_SaveNew() {
 		var newcandi	= this.MakeNewCandiFromEl();
+		this.AddNewCandi(newcandi);
+	}
+
+	AddNewCandi(newcandi) {
 		this.candis.push(newcandi);
 		this.SortCandis();
 		this.ClearNewCandiHtml();
@@ -668,7 +707,12 @@ class MakeCandis extends CandisCommon {
 			alert(str_wording);
 			return;
 		}
-		this.AddNewWaku(dt_start, dt_end);
+		//this.AddNewWaku(dt_start, dt_end);
+		var newcandi	= {}
+		newcandi.dt_start	= dt_start;
+		newcandi.dt_end		= dt_end;
+		this.AddNewCandi(newcandi);
+
 	}
 
 	FocusArea() {
@@ -727,11 +771,12 @@ class MakeCandis extends CandisCommon {
 					return ;
 				}
 			}
-			var diff	= candi1.dt_end - candi1.dt_start;
+		}
+		for (var candi of this.candis) {
+			var diff	= candi.dt_end - candi.dt_start;
 			diff		/= (60 * 1000);
 			if (diff < this.min_needtime) {
-				this.candis_warning	= this.MakeWording('candititle', {'candi_no':candi1.no});
-				this.candis_warning	+= 'が、' + this.MakeWording('needtime_shortage', {'needtime':this.min_needtime});
+				this.candis_warning	= this.MakeWording('nt_shortage_title', {'candi_no':candi.no, 'needtime':this.min_needtime});
 				return;
 			}
 		}
@@ -739,6 +784,13 @@ class MakeCandis extends CandisCommon {
 
 	SetNewCandiCb() {
 		var app	= this;
+		$('#id_textarea_title').off('click');
+		$('#id_textarea_title').on('click',
+			function (e) {
+				app.OP_ClickTitle(e);
+			}
+		)
+
 		$('#id_textarea_title').off('keydown');
 		$('#id_textarea_title').on('keydown',
 			function (e) {
@@ -883,9 +935,9 @@ class MakeCandis extends CandisCommon {
 		$('#id_td_left').css('width', widths.left);
 		$('#id_right_tbl').css('width', widths.right);
 		var jq_td_exists	= $('#' + CandisCommon.CALID_EXISTS).parent().parent();
-		var jq_td_selects	= $('#' + CandisCommon.CALID_SELECTS).parent().parent();
+		//var jq_td_selects	= $('#' + CandisCommon.CALID_SELECTS).parent().parent();
 		jq_td_exists.css('width', widths.exists);
-		jq_td_selects.css('width', widths.selects);
+		//jq_td_selects.css('width', widths.selects);
 	}
 
 	DrawSetHeight() {
@@ -901,7 +953,7 @@ class MakeCandis extends CandisCommon {
 		$('#id_tbl_candititle').html(htmls.header);
 		$('#id_tbl_candineedmin').html(htmls.needmin);
 		$('#id_tbl_candilist').html(htmls.candilist);
-		//$('#id_tbl_newcandi').html(htmls.newcandi);
+		$('#id_tbl_newcandi').html(htmls.newcandi);
 		$('#id_tbl_explanation').html(htmls.explanation);
 		this.SetNewCandiCb();
 		this.FocusArea();
@@ -982,7 +1034,8 @@ class MakeCandis extends CandisCommon {
 			dt_end.setHours(10);
 		}
 		this.newwaku_visible	= true;
-		var html_newcandi	= this.MakeHtml_NewCandi(dt_start, dt_end);
+		this.newccandi		= {'dt_start':dt_start, 'dt_end':dt_end}
+		var html_newcandi	= this.MakeHtml_NewCandi();
 		$('#id_tbl_newcandi').html(html_newcandi);
 		this.SetNewCandiCb();
 		this.dtd_newcandi	= new Date(dt_start);
@@ -996,27 +1049,36 @@ class MakeCandis extends CandisCommon {
 
 	MakeHtml_CandisInfo() {
 		var htmls		= {'header':'', 'needmin':'', 'candilist':'', 'newcandi':''};
+		htmls.header		= this.MakeHtml_CandiHeader();
+		htmls.needmin		= this.MakeHtml_Needtime();
+		htmls.candilist		= this.MakeHtml_CandiList();
+		htmls.explanation	= this.MakeHtml_Explanation();
+		htmls.newcandi		= this.MakeHtml_NewCandi();
+		return htmls;
+	}
+
+	MakeHtml_CandiHeader() {
 		var widths		= this.widths;
 		var css_hd		= ' style="background-color:' + this.options.title_color + '; ';
-
 		var html_candis	= '';
 		var title_schedule	= this.MakeWording('title_schedule');
 		html_candis		+= '<tr><th colspan=2' + css_hd + 'width:'+ widths.candi_all + 'px;">' + title_schedule + '</th></tr>'
 		var html_text	= '<textarea id="id_textarea_title" style="width:' + (widths.candi_all - 30) + 'px; height:20px;">' + this.title + '</textarea>';
 		html_candis		+= '<tr><td colspan=2 style="width:' + widths.candi_all + 'px;">' + html_text + '</td></tr>';
-		htmls.header	= html_candis;
+		return html_candis
+	}
 
-		html_candis		= '';
+	MakeHtml_Needtime() {
+		var widths		= this.widths;
+		var css_hd		= ' style="background-color:' + this.options.title_color + '; ';
+
+		var html_candis	= '';
 		var title_needtime	= this.MakeWording('title_needtime');
 		html_candis		+= '<tr><th' + css_hd + 'width:'+ widths.needtime_title + 'px;">' + title_needtime + '</th>'
 		html_candis		+= '<td style="width:' + widths.needtime_value + 'px;" align="center">';
 		html_candis		+= '<input readonly class="cls_needtime" id="id_min_needtime" value="' + this.min_needtime + '"></input>';
 		html_candis		+= '</td></tr>';
-		htmls.needmin	= html_candis;
-
-		htmls.candilist		= this.MakeHtml_CandiList();
-		htmls.explanation	= this.MakeHtml_Explanation();
-		return htmls;
+		return html_candis
 	}
 
 	MakeHtml_CandiList() {
@@ -1034,8 +1096,6 @@ class MakeCandis extends CandisCommon {
 		if (this.candis_warning != '') {
 			html_candis		+= '<tr><td colspan="3" style="width:' + (widths.candi_all) + 'px; color:red;">' + this.candis_warning +  '</td></tr>';;
 		}
-		var btn			= '<a href="javascript:void(0);" class="btn_kirari btn_kirari_blue" id="id_btn_add" style="width:150px;">新規枠追加</a>';
-		html_candis		+= '<tr><td colspan="3" class="td_candi_info2 " style="width:' + (widths.candi_all) + 'px">' + btn + '</td></tr>';
 		return html_candis;
 	}
 
@@ -1058,25 +1118,30 @@ class MakeCandis extends CandisCommon {
 
 	}
 
-	MakeHtml_NewCandi(dt_start, dt_end) {
+	MakeHtml_NewCandi() {
 		var html_newcandi	= '';
+		var widths		= this.widths;
 		var css_hd		= ' style="background-color:' + this.options.title_color + '; ';
 		var title_newcandi	= this.MakeWording('title_newcandi');
-		var widths		= this.widths;
 		html_newcandi	+= '<tr style="height:15px;"><td colspan="3"></td></tr>';
 		html_newcandi	+= '<tr><th colspan=3' + css_hd + 'width:'+ (widths.candi_all-10) + 'px;">' + title_newcandi + '</th></tr>';
-		var str_date	= this.options.func_date2str(dt_start) + ' ';
+		if (!this.newwaku_visible) {
+			var btn			= '<a href="javascript:void(0);" class="btn_kirari btn_kirari_blue" id="id_btn_add" style="width:150px;">枠作成</a>';
+			html_newcandi	+= '<tr><td colspan="3" class="td_candi_info2 " style="width:' + (widths.candi_all) + 'px">' + btn + '</td></tr>';
+			return html_newcandi;
+		}
+		var str_date	= this.options.func_date2str(this.newccandi.dt_start) + ' ';
 		var id_new	= 'id_new_';
 		html_newcandi	+= '<tr id="newcandi">';
 		html_newcandi	+= '<td class="td_candi_info2" style="width:' + (widths.candi_dt) + 'px">';
 		html_newcandi	+= '<input readonly style="width:75px;" class="cls_timeinput" id="' + id_new + 'date" value="' + str_date + '"></input>';
-		html_newcandi	+= '<input readonly class="cls_timeinput" id="' + id_new + 'start_h" value="' + dt_start.getHours() + '"></input>';
+		html_newcandi	+= '<input readonly class="cls_timeinput" id="' + id_new + 'start_h" value="' + this.newccandi.dt_start.getHours() + '"></input>';
 		html_newcandi	+= '<label class="cls_timeinput">:</label>'
-		html_newcandi	+= '<input readonly class="cls_timeinput" id="' + id_new + 'start_m" value="' + MinStr(dt_start) + '"></input>';
+		html_newcandi	+= '<input readonly class="cls_timeinput" id="' + id_new + 'start_m" value="' + MinStr(this.newccandi.dt_start) + '"></input>';
 		html_newcandi	+= '<label class="cls_timeinput">～</label>'
-		html_newcandi	+= '<input readonly class="cls_timeinput" id="' + id_new + 'end_h" value="' + dt_end.getHours() + '"></input>';
+		html_newcandi	+= '<input readonly class="cls_timeinput" id="' + id_new + 'end_h" value="' + this.newccandi.dt_end.getHours() + '"></input>';
 		html_newcandi	+= '<label class="cls_timeinput">:</label>'
-		html_newcandi	+= '<input readonly class="cls_timeinput" id="' + id_new + 'end_m" value="' + MinStr(dt_end) + '"></input>';
+		html_newcandi	+= '<input readonly class="cls_timeinput" id="' + id_new + 'end_m" value="' + MinStr(this.newccandi.dt_end) + '"></input>';
 		html_newcandi	+= '</td>';
 		html_newcandi	+= '<td class="td_candi_info2 cls_td_add_cancel" style="width:' + (widths.candi_btn/2) + 'px">';
 		html_newcandi	+= '<a href="javascript:void(0);" class="btn_kirari_small btn_kirari_blue" id="id_btn_save">Add</a></td>';
@@ -1146,7 +1211,7 @@ class SeleCandis extends CandisCommon {
 		this.candis			= candis;
 		this.exists			= exists;
 		this.title			= title;
-		this.min_needtime	= (min_needtime==null) ? SeleCandis.DEF_MIN_NEEDTIME : min_needtime;
+		this.min_needtime	= (min_needtime==null) ? this.options.min_needtime : min_needtime;
 		
 		var no	= 1
 		for (var candi of this.candis) {
@@ -1344,19 +1409,19 @@ class SeleCandis extends CandisCommon {
 		if (this.timer_id != null) {
 			clearTimeout(this.timer_id);
 		}
+		var str_comment	= $('#id_textarea_comment').val();
+		var editing		= this.GetEditingCandi;
+		editing.candi.comment	= str_comment;
 		var app	= this;
 		this.timer_id	= setTimeout(
 			function CB() {
 				app.CB_Timeout_Keyup(); 
 			}
-			, 2000
+			, 500
 		);
 	}
 	CB_Timeout_Keyup() {
 		this.timer_id	= null;
-		var str_comment	= $('#id_textarea_comment').val();
-		var editing		= this.GetEditingCandi;
-		editing.candi.comment	= str_comment;
 		this.CandisUpdated(true);
 	}
 
