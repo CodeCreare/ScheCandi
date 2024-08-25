@@ -20,6 +20,24 @@ a.btn_kirari_red:hover {
 	background		: lightcoral;
 }
 
+a.btn_kirari_green {
+	border			: 1px solid green;
+	color			: green;
+}
+
+a.btn_kirari_green:hover {
+	background		: green;
+}
+
+a.btn_kirari_gray {
+	border			: 1px solid gray;
+	color			: gray;
+}
+
+a.btn_kirari_gray:hover {
+	background		: gray;
+}
+
 a.btn_kirari {
 	display		: block;
 	text-align	: center;
@@ -27,7 +45,9 @@ a.btn_kirari {
 	vertical-align: middle;
 	*/
 	text-decoration	: none;
+	/*
 	width			: 36px;
+	*/
 	margin			: auto;
 	padding			: 8px 8px;
 	position		: relative;
@@ -181,20 +201,36 @@ a.btn_kirari_small::before {
 	background-color: lightcyan;
 }
 
-.cls_editing td {
+.cls_focus_tb td {
 	border-top		: 3px solid blue;
 	border-bottom	: 3px solid blue;
 }
-.cls_td_mostleft  {
+.cls_focus_left  {
 	border-left		: 3px solid blue;
 }
-.cls_td_mostright  {
+.cls_focus_right  {
 	border-right	: 3px solid blue;
+}
+
+.cls_focusdtl_tb td {
+	border-top		: 2px solid deepskyblue;
+	border-bottom	: 2px solid deepskyblue;
+}
+.cls_focusdtl_left  {
+	border-left		: 2px solid deepskyblue;
+}
+.cls_focusdtl_right  {
+	border-right	: 2px solid deepskyblue;
 }
 
 .cls_btn_edit {
 	width		: 30px;
 	height		: 30px;
+}
+
+.cls_btn_smalledit {
+	width		: 20px;
+	height		: 20px;
 }
 
 .cls_marubatu {
@@ -225,7 +261,10 @@ a.btn_kirari_small::before {
 	border		: none;
 }
 
-#id_keydown_receiver {
+/*
+#id_candilist {
+*/
+.cls_hideinput {
 	margin		: 28px;
 	position	: absolute;
 	z-index		: -10;
@@ -237,3 +276,6 @@ a.btn_kirari_small::before {
 	margin		: 2px;
 	padding		: 2px;
 }
+
+
+
