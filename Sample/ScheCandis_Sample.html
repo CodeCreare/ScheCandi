@@ -6,16 +6,23 @@
 </head>
 
 <script src='https://code.jquery.com/jquery-3.7.1.min.js' integrity='sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=' crossorigin='anonymous'></script>
+<script src="https://code.jquery.com/ui/1.14.0/jquery-ui.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.0/themes/base/jquery-ui.css">
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.5.0/main.min.js'></script>
 <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/fullcalendar@5.5.0/main.min.css'>
 <script src='https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js'></script>
 <script src='https://unpkg.com/vue-select@latest'></script> 
-<!--
-<script src='../Lib/ScheCandis.js'></script> 
+
+<script src='../Lib/ScheCandis_Common.js'></script> 
+<script src='../Lib/ScheCandis_Make.js'></script> 
+<script src='../Lib/ScheCandis_Sele.js'></script> 
 <link rel='stylesheet' href='../Lib/ScheCandis.css?20240605'>
+<!--
+<script src='https://cdn.jsdelivr.net/gh/CodeCreare/ScheCandis@v1.0.3/Lib/ScheCandis_Common.js'></script> 
+<script src='https://cdn.jsdelivr.net/gh/CodeCreare/ScheCandis@v1.0.3/Lib/ScheCandis_Make.js'></script> 
+<script src='https://cdn.jsdelivr.net/gh/CodeCreare/ScheCandis@v1.0.3/Lib/ScheCandis_Sele.js'></script> 
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/CodeCreare/ScheCandis@v1.0.3/Lib/ScheCandis.css?20240527'>
 -->
-<script src='https://cdn.jsdelivr.net/gh/CodeCreare/ScheCandis@v0.9.0/Common/ScheCandis.js'></script> 
-<link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/CodeCreare/ScheCandis@v0.9.0/Common/ScheCandis.css?20240527'>
 
 <script src='ScheduleData.txt'></script> 
 <script src='../Fe2Php2Python/SendToBe.js'></script> 
@@ -119,8 +126,8 @@ var vue_app_main = new Vue({
 			}
 		},
 
-		CB_SelectChanged(selectdata) {
-			console.log('html selectdata=', selectdata);
+		CB_SelectChanged(selectdata, finalanswer=false) {
+			console.log('finalanswer=', finalanswer, ', html selectdata=', selectdata);
 		},
 
 		SetOptions(options) {
@@ -134,12 +141,13 @@ var vue_app_main = new Vue({
 
 		Debug_Auto(pattern) {
 			if (pattern == 1) {
-				this.candis	= Debug_MakeCandis();
+				this.data	= Debug_MakeScheCandisData(this.exists);
 				if (this.selecandis != null) {
-					this.selecandis.SetSchedules(this.candis, this.exists, '＊＊＊＊予定', 75);
+					this.selecandis.SetData(this.data, 'メンバー1');
 				}
 				if (this.makecandis != null) {
-					this.makecandis.SetSchedules(this.candis, this.exists, '＊＊＊＊予定', 60);
+					this.makecandis.SetData(this.data);
+					this.makecandis.SetOptions({'title_finalanswer':'保存する'})
 				}
 				this.Debug_GetNow();
 			}
@@ -164,7 +172,7 @@ var vue_app_main = new Vue({
 			SendToBe('NowIf.py', 'GetSchedules', [targets, dtd_target, null, 1], 
 				function CB_Resp(resp_s2c) {
 					var result		= resp_s2c.func_ret;
-					console.log(result);
+					console.log('ret(NowIf.GetSchedules)=', result);
 				}
 			)
 		},
@@ -173,21 +181,26 @@ var vue_app_main = new Vue({
 
 
 
-function Debug_MakeCandis() {
+function Debug_MakeScheCandisData(exists) {
+	var data		= {};
+	var sche_info	= {'title':'スケジュールタイトル', 'min_needtime':60};
+	sche_info.range_adjust	= {'dtd_start':new Date(2024, 8-1, 19, 12, 0), 'dtd_end':new Date(2024, 8-1, 20, 12, 0)}
+	data.sche_info	= sche_info;
 	var candis	= [
-		{'dt_start':new Date(2024, 5-1, 27, 10, 0), 'dt_end':new Date(2024, 5-1, 27, 15, 0)},
-		{'dt_start':new Date(2024, 5-1, 28, 11, 0), 'dt_end':new Date(2024, 5-1, 28, 14, 0)},
-		{'dt_start':new Date(2024, 5-1, 29, 13, 0), 'dt_end':new Date(2024, 5-1, 29, 18, 0)},
-		{'dt_start':new Date(2024, 5-1, 30, 10, 0), 'dt_end':new Date(2024, 5-1, 30, 12, 0)},
-		{'dt_start':new Date(2024, 5-1, 31, 9, 0), 'dt_end':new Date(2024, 5-1, 31, 12, 0)},
+		{'dt_start':new Date(2024, 8-1, 19, 10, 0), 'dt_end':new Date(2024, 8-1, 19, 15, 0)},
+		{'dt_start':new Date(2024, 8-1, 20, 13, 0), 'dt_end':new Date(2024, 8-1, 20, 18, 0)},
+		{'dt_start':new Date(2024, 8-1, 21, 11, 0), 'dt_end':new Date(2024, 8-1, 21, 14, 0)},
+		{'dt_start':new Date(2024, 8-1, 28, 13, 0), 'dt_end':new Date(2024, 8-1, 28, 16, 0)},
 	];
-	var ok1	= {'dt_start':new Date(2024, 5-1, 27, 12, 0), 'dt_end':new Date(2024, 5-1, 27, 14, 0)}
-	var ok2	= {'dt_start':new Date(2024, 5-1, 27, 10, 0), 'dt_end':new Date(2024, 5-1, 27, 11, 15)}
-	candis[0].status	= 'CANDI_STS_PARTIAL';
-	candis[0].oks		= [ok1, ok2];
-	candis[0].comment	= '';
-	//candis	= [];
-	return candis;
+	data.candis		= candis; 
+	var member1		= {'name':'メンバー1'}
+	member1.exists	= exists;
+	candis[0].oks	= [{'dt_start':new Date(2024, 8-1, 19, 12, 0), 'dt_end':new Date(2024, 8-1, 19, 14, 0)}]
+	candis[2].oks	= [{'dt_start':new Date(2024, 8-1, 21, 12, 0), 'dt_end':new Date(2024, 8-1, 21, 13, 0)}]
+	data.members	= [member1]
+	ope_info		= {}
+	data.ope_info	= ope_info;
+	return data;
 }
 
 

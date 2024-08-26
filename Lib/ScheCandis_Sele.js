@@ -60,6 +60,9 @@ class SeleCandis extends CandisCommon {
 		if (data.sche_info.min_needtime == null) {
 			data.sche_info.min_needtime = this.options.min_needtime;
 		}
+		if (!data.ope_info) {
+			data.ope_info	= {}
+		}
 		this.SortCandis(data.candis);
 		var member		= this.GetTargetMember();
 		member.candis	= [];
@@ -533,7 +536,7 @@ class SeleCandis extends CandisCommon {
 	CandisUpdated(keep_detail_focus=false) {
 		this.DrawCandis(keep_detail_focus);
 		this.DrawSelectCalendar();
-		this.cb_change(this.data);
+		this.cb_change(this.data, false);
 	}
 
 	SetAllOkNg(candi, type_okng) {

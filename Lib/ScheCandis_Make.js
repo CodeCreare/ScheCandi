@@ -36,9 +36,15 @@ class MakeCandis extends CandisCommon {
 	}
 
 	SetData(data) {
-		this.data		= data;
+		this.data	= data;
 		if (data.sche_info.min_needtime == null) {
 			data.sche_info.min_needtime = this.options.min_needtime;
+		}
+		if (!data.ope_info) {
+			data.ope_info	= {}
+		}
+		if (!data.candis) {
+			data.candis		= []
 		}
 		if (!data.ope_info.candis_warning) {
 			data.ope_info.candis_warning	= '';
@@ -47,10 +53,8 @@ class MakeCandis extends CandisCommon {
 		this.SortCandis(data.candis);
 		this.DrawCandis();
 		if (this.data.candis.length == 0) {
-//			this.ChangeFocusArea('FOCUSAREA_TITLE');
 			this.FocusArea('#id_textarea_title');
 		} else {
-//			this.ChangeFocusArea('FOCUSAREA_CANDILIST');
 			this.FocusArea('#id_keydown_receiver');
 		}
 		this.DrawCal_AddExists();
@@ -64,11 +68,6 @@ class MakeCandis extends CandisCommon {
 	GetOptionParams() {
 		return MakeCandis.option_params;
 	}
-
-	/*
-	ChangeFocusArea(focusarea, nodraw=false) {
-	}
-	*/
 
 	InitDraw() {
 		console.log('InitDraw')
@@ -143,7 +142,6 @@ class MakeCandis extends CandisCommon {
 
 	// .id_textarea_title 
 	OP_ClickTitle(e) {
-		//this.ChangeFocusArea('FOCUSAREA_TITLE');
 		this.FocusArea('#id_textarea_title');
 		this.CandisUpdated();
 	}
@@ -154,7 +152,6 @@ class MakeCandis extends CandisCommon {
 		if (['SHIFT', 'CONTROL', 'ALT'].indexOf(key_upper) != -1) {
 			return;
 		}
-		//this.ChangeFocusArea('FOCUSAREA_TITLE', true);
 		if (!e.altKey && !e.shiftKey && e.ctrlKey) {
 			console.log('key_upper(Shift)=', key_upper);
 			if (['ARROWUP', 'ARROWDOWN'].indexOf(key_upper) != -1) {
@@ -174,7 +171,7 @@ class MakeCandis extends CandisCommon {
 			clearTimeout(this.timer_id);
 		}
 		var str_title	= $('#id_textarea_title').val();
-		this.title		= str_title;
+		this.data.sche_info.title	= str_title;
 		var app	= this;
 		this.timer_id	= setTimeout(
 			function CB() {
@@ -185,23 +182,11 @@ class MakeCandis extends CandisCommon {
 	}
 	CB_Timeout_Keyup() {
 		this.timer_id	= null;
-		this.cb_change(this.data);
+		this.cb_change(this.data, false);
 	}
-
-	// #id_textarea_title #id_min_needtime #id_keydown_receiver #id_new_date 
-	/*
-	Keydown_ModeChange(e, key_upper) {
-	}
-	*/
 
 	// #id_min_needtime 
 	OP_ClickNeedMinInput(e) {
-		/*
-		var id_this		= $(e.target).attr('id');
-		if (id_this == 'id_min_needtime') {
-			this.ChangeFocusArea('FOCUSAREA_NEEDTIME');
-		}
-		*/
 		this.FocusArea('#id_min_needtime');
 		this.CandisUpdated();
 	}
@@ -213,7 +198,6 @@ class MakeCandis extends CandisCommon {
 		if (['SHIFT', 'CONTROL', 'ALT'].indexOf(key_upper) != -1) {
 			return;
 		}
-//		this.ChangeFocusArea('FOCUSAREA_NEEDTIME', true);
 		if (!e.altKey && !e.shiftKey && e.ctrlKey) {
 			console.log('key_upper(Shift)=', key_upper);
 			if (['ARROWUP', 'ARROWDOWN'].indexOf(key_upper) != -1) {
@@ -222,7 +206,6 @@ class MakeCandis extends CandisCommon {
 				this.data.ope_info.index_editing	= 0;
 				this.FocusArea(id_new);
 				this.CandisUpdated();
-				//				this.Keydown_ModeChange(e, key_upper);
 			}
 		}
 		if (!e.altKey && !e.shiftKey && !e.ctrlKey) {
@@ -247,8 +230,8 @@ class MakeCandis extends CandisCommon {
 				break;
 			}
 		}
-//		this.ChangeFocusArea('FOCUSAREA_CANDILIST', true);
 		this.DrawCandis();
+		this.DrawCal_Candis();
 		this.FocusArea('#id_keydown_receiver');
 	}
 
@@ -262,7 +245,6 @@ class MakeCandis extends CandisCommon {
 			console.log('key_upper(Ctrl)=', key_upper);
 			if (['ARROWUP', 'ARROWDOWN'].indexOf(key_upper) != -1) {
 				e.preventDefault();
-//				this.Keydown_ModeChange(e, key_upper);
 				var id_new	= this.Op_JudgeNextFocus(key_upper);
 				this.data.ope_info.index_editing	= 0;
 				this.FocusArea(id_new);
@@ -368,6 +350,7 @@ class MakeCandis extends CandisCommon {
 
 	OP_Cal_SpanSelect(dt_start, dt_end) {
 		this.cal_exists.unselect();
+		/*
 		var diff	= dt_end - dt_start;
 		diff		/= (60 * 1000);
 		if (diff < this.data.sche_info.min_needtime) {
@@ -375,7 +358,7 @@ class MakeCandis extends CandisCommon {
 			alert(str_wording);
 			return;
 		}
-		//this.AddNewWaku(dt_start, dt_end);
+		*/
 		var newcandi		= {};
 		newcandi.dt_start	= dt_start;
 		newcandi.dt_end		= dt_end;
@@ -434,7 +417,6 @@ class MakeCandis extends CandisCommon {
 			} else if (key_upper == 'E') {
 				var index	= this.data.ope_info.index_editing;
 				var candi	= this.data.candis[index];
-				//this.Draw_AddNewWaku(candi.dt_start, candi.dt_end);
 				this.Data_AddNewWaku(candi, true);
 			} else if (key_upper == 'F') {
 				this.cb_change(this.data, true);
@@ -601,7 +583,6 @@ class MakeCandis extends CandisCommon {
 		var newcandi		= {}
 		newcandi.dt_start	= dt_start;
 		newcandi.dt_end		= dt_end;
-//		this.Data_SaveNewCandi(newcandi)
 		this.Data_AddNewWaku(newcandi, false);
 	}
 
@@ -666,7 +647,7 @@ class MakeCandis extends CandisCommon {
 		this.UpdateWarning();
 		this.DrawCandis();
 		this.DrawCal_Candis();
-		this.cb_change(this.data);
+		this.cb_change(this.data, false);
 	}
 
 	UpdateWarning() {
@@ -979,6 +960,9 @@ class MakeCandis extends CandisCommon {
 			event.end		= candi.dt_end.toISOString();
 			event.color		= this.options.event_color_candi;
 			event.display	= 'background';
+			if (this.data.ope_info.index_editing == parseInt(c)) {
+				event.color		= 'dodgerblue';
+			}
 			candi.orgtype	= 'candi';
 			event.org		= candi;
 			this.cal_exists.addEvent(event);
@@ -1015,17 +999,10 @@ class MakeCandis extends CandisCommon {
 		}
 		this.cal_exists.gotoDate(dtd_arg);
 		this.dtd_cal	= dtd_arg
-		//this.DrawCal_SetCalScrollPos();
+		this.DrawCal_SetCalScrollPos();
+		this.DrawCal_Candis();
 	}
 	
-	/*
-	DrawNewCandiHtml(dt_start, dt_end) {
-	}
-
-	ClearNewCandiHtml() {
-	}
-	*/
-
 	MakeHtml_CandisInfo() {
 		var htmls		= {'header':'', 'needmin':'', 'candilist':'', 'newcandi':''};
 		htmls.header		= this.MakeHtml_CandiHeader();
@@ -1265,7 +1242,6 @@ class MakeCandis extends CandisCommon {
 		)
 	}
 
-	/*
 	DrawCal_SetCalScrollPos() {
 		if (!this.data || this.data.candis.length == 0) {
 			return;
@@ -1278,7 +1254,7 @@ class MakeCandis extends CandisCommon {
 		var height_shown	= jq_cal_area.offsetHeight;
 		let CONST_DISPMARGIN	= 0.5;
 		var height_1hour	= height_all / (0.3 + 0.5 + hour_all);										// 余白0.3、終日予定0.5、を足す
-		var hour_diffshow	= hour_toshow - this.options.starthour + 0.3 + 0.5 - CONST_DISPMARGIN;	// 余白0.3、終日予定0.5、を足す。　30分前を表示
+		var hour_diffshow	= hour_toshow - this.options.starthour + 0.3 - CONST_DISPMARGIN;	// 余白0.3、終日予定0.5、を足す。　30分前を表示
 		// 候補枠の表示をランダムで少しだけ上下させて、candi切替前から時間軸が変化した事を認識しやすくする
 		var hour_random		= -0.25 + Math.random() * 0.5;
 		hour_diffshow		+= hour_random;
@@ -1287,7 +1263,6 @@ class MakeCandis extends CandisCommon {
 		$('.cls_calendar_area').scrollTop(height_toshow);
 		console.log('height_shown/height_all=', height_shown, '/', height_all, 'hour_toshow/hour_all=', hour_toshow, '/', hour_all, 'height_toshow=', height_toshow);
 	}
-	*/
 
 }
 
@@ -1298,6 +1273,7 @@ function GetCalParams_MakeCandis(parent) {
 		initialView				: 'timeGridWeek',
 		locale					: parent.options.calendar_locale,
 		allDayText				: parent.options.cal_locale_allday,
+		stickyHeaderDates		: true,
 		weekends				: false,
 		selectable				: true,
 		allDaySlot				: true,
