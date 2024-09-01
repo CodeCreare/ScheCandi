@@ -760,11 +760,15 @@ class SeleCandis extends CandisCommon {
 	}
 
 	DrawExistCalendar() {
-		if (!this.exists) {
+		if (!this.data) {
+			return;
+		}
+		var member	= this.GetTargetMember();
+		if (!member.exists) {
 			return;
 		}
 		this.cal_exists.removeAllEvents();
-		for (var exist of this.exists) {
+		for (var exist of member.exists) {
 			var event	= {}
 			event.title		= exist.title;
 			event.start		= exist.dt_start.toISOString();
@@ -1101,8 +1105,12 @@ class SeleCandis extends CandisCommon {
 	}
 
 	DrawCal_MoveDay() {
-		var index	= this.data.ope_info.index_editing;
-		var dt		= this.data.candis[index].dt_start;
+		if (this.data.candis.length == 0) {
+			var dt		= new Date();
+		} else {
+			var index	= this.data.ope_info.index_editing;
+			var dt		= this.data.candis[index].dt_start;
+		}
 		var dtd		= new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
 		if (this.dtd_cal && this.dtd_cal.getMonth() == dtd.getMonth() && this.dtd_cal.getDate() == dtd.getDate()) {
 			return;
